@@ -18,12 +18,20 @@ const MatchForm: FC<MatchFormProps> = (props) => {
   const { callback } = props;
   const [adversaryA, setAdversaryA] = useState("");
   const [adversaryB, setAdversaryB] = useState("");
-  const [result, setResult] = useState<MatchResult>(MatchResult.LEFT_WIN);
+
+  const getRandomResult = () => {
+    const r = Math.random();
+    if (r < 1/3) return MatchResult.LEFT_WIN;
+    if (r < 2/3) return MatchResult.DRAW;
+    return MatchResult.RIGHT_WIN;
+  };
+
+  const [result, setResult] = useState<MatchResult>(getRandomResult());
 
   const resetForm = () => {
     setAdversaryA("");
     setAdversaryB("");
-    setResult(MatchResult.LEFT_WIN);
+    setResult(getRandomResult());
   };
 
   return (
@@ -42,39 +50,70 @@ const MatchForm: FC<MatchFormProps> = (props) => {
         });
       }}
     >
-      <div className="flex justify-between">
-        <div className="flex flex-col justify-between items-center mb-4 gap-4 p-2">
-          <input
-            type="checkbox"
-            className="transform scale-150"
-            checked={result === MatchResult.LEFT_WIN}
+      <div className="flex justify-between items-start pt-4 h-32">
+        {/* Colonne Joueur A (Gauche) */}
+        <div 
+          className="flex flex-col items-center gap-2 cursor-pointer w-1/3"
+          onClick={() => setResult(MatchResult.LEFT_WIN)}
+        >
+          <input 
+            type="radio" 
+            checked={result === MatchResult.LEFT_WIN} 
             onChange={() => setResult(MatchResult.LEFT_WIN)}
+            className="transform scale-150 mb-2"
           />
-          <span className="text-xl">Adversaire A</span>
-          <input type="text" className="border border-gray-300 rounded-md" value={adversaryA} onChange={(evt) => setAdversaryA(evt.target.value)} />
+          
+          <span className="text-xl font-bold">Adversaire A</span>
+          <input 
+            type="text" 
+            className="border border-gray-300 rounded-md p-1 w-full text-center" 
+            placeholder="ID Joueur A"
+            value={adversaryA} 
+            onChange={(evt) => setAdversaryA(evt.target.value)} 
+            onClick={(e) => e.stopPropagation()} 
+          />
         </div>
-        <div className="flex flex-col justify-start align-item mb-4 gap-4 p-2 w-[100px]">
-          <input
-            type="checkbox"
-            className="transform scale-150"
-            checked={result === MatchResult.DRAW}
+
+        {/* Colonne Match Nul (Centre) */}
+        <div 
+          className="flex flex-col items-center justify-start gap-2 cursor-pointer w-1/3 pt-2"
+          onClick={() => setResult(MatchResult.DRAW)}
+        >
+          <input 
+            type="radio" 
+            checked={result === MatchResult.DRAW} 
             onChange={() => setResult(MatchResult.DRAW)}
+            className="transform scale-150 mb-2"
           />
+          <span className="text-sm text-gray-500 uppercase tracking-widest mt-2">Match Nul</span>
         </div>
-        <div className="flex flex-col justify-between items-center mb-4 gap-4 p-2">
-          <input
-            type="checkbox"
-            className="transform scale-150"
-            checked={result === MatchResult.RIGHT_WIN}
+
+        {/* Colonne Joueur B (Droite) */}
+        <div 
+          className="flex flex-col items-center gap-2 cursor-pointer w-1/3"
+          onClick={() => setResult(MatchResult.RIGHT_WIN)}
+        >
+          <input 
+            type="radio" 
+            checked={result === MatchResult.RIGHT_WIN} 
             onChange={() => setResult(MatchResult.RIGHT_WIN)}
+            className="transform scale-150 mb-2"
           />
-          <span className="text-xl">Adversaire B</span>
-          <input type="text" className="border border-gray-300 rounded-md" value={adversaryB} onChange={(evt) => setAdversaryB(evt.target.value)} />
+
+          <span className="text-xl font-bold">Adversaire B</span>
+          <input 
+            type="text" 
+            className="border border-gray-300 rounded-md p-1 w-full text-center" 
+            placeholder="ID Joueur B"
+            value={adversaryB} 
+            onChange={(evt) => setAdversaryB(evt.target.value)} 
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       </div>
       <button
         type="submit"
-        className="bg-blue-600 hover:bg-blue-800 text-white px-4 py-2 rounded-md"
+        className="bg-indigo-600 hover:bg-indigo-800 text-white px-4 py-2 rounded-md mt-4 self-center w-1/2"
       >
         Déclarer le match
       </button>
