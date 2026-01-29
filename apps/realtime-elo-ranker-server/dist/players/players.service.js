@@ -38,15 +38,26 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 var PlayersService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PlayersService = void 0;
 const common_1 = require("@nestjs/common");
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
+const ranking_gateway_1 = require("../ranking/ranking.gateway");
 let PlayersService = PlayersService_1 = class PlayersService {
+    rankingEventsService;
     logger = new common_1.Logger(PlayersService_1.name);
     players = new Map();
+    constructor(rankingEventsService) {
+        this.rankingEventsService = rankingEventsService;
+    }
     async onModuleInit() {
         await this.loadPlayers();
     }
@@ -99,13 +110,18 @@ let PlayersService = PlayersService_1 = class PlayersService {
     getAllPlayers() {
         return Array.from(this.players.values()).sort((a, b) => b.rank - a.rank);
     }
-    addPlayer(id) {
+    addPlayer(id, initialRank) {
+        if (!id || typeof id !== 'string' || id.trim().length === 0) {
+            throw new Error('INVALID_ID');
+        }
         const existing = this.players.get(id);
         if (existing) {
-            return existing;
+            throw new Error('PLAYER_EXISTS');
         }
-        const newPlayer = { id, rank: 1000 };
+        const rank = initialRank ?? 0;
+        const newPlayer = { id, rank };
         this.players.set(id, newPlayer);
+        this.rankingEventsService.emitRankingUpdate(newPlayer);
         return newPlayer;
     }
     updatePlayer(player) {
@@ -116,6 +132,8 @@ let PlayersService = PlayersService_1 = class PlayersService {
 };
 exports.PlayersService = PlayersService;
 exports.PlayersService = PlayersService = PlayersService_1 = __decorate([
-    (0, common_1.Injectable)()
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)((0, common_1.forwardRef)(() => ranking_gateway_1.RankingEventsService))),
+    __metadata("design:paramtypes", [ranking_gateway_1.RankingEventsService])
 ], PlayersService);
 //# sourceMappingURL=players.service.js.map

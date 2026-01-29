@@ -16,7 +16,7 @@ let RankingModule = class RankingModule {
 exports.RankingModule = RankingModule;
 exports.RankingModule = RankingModule = __decorate([
     (0, common_1.Module)({
-        imports: [players_module_1.PlayersModule],
+        imports: [(0, common_1.forwardRef)(() => players_module_1.PlayersModule)],
         controllers: [ranking_controller_1.RankingController],
         providers: [ranking_gateway_1.RankingEventsService],
         exports: [ranking_gateway_1.RankingEventsService],

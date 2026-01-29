@@ -48,7 +48,6 @@ export class MatchesService {
       actualLoserScore = 0.5;
     }
 
-    // New Ratings
     const newWinnerRank = Math.round(winnerRank + this.K_FACTOR * (actualWinnerScore - expectedWinner));
     const newLoserRank = Math.round(loserRank + this.K_FACTOR * (actualLoserScore - expectedLoser));
     winnerPlayer.rank = newWinnerRank;

@@ -21,7 +21,18 @@ let PlayersController = class PlayersController {
         this.playersService = playersService;
     }
     createPlayer(id) {
-        return this.playersService.addPlayer(id);
+        try {
+            return this.playersService.addPlayer(id);
+        }
+        catch (error) {
+            if (error.message === 'INVALID_ID') {
+                throw new common_1.BadRequestException({ code: 0, message: "L'identifiant du joueur n'est pas valide" });
+            }
+            if (error.message === 'PLAYER_EXISTS') {
+                throw new common_1.ConflictException({ code: 0, message: "Le joueur existe déjà" });
+            }
+            throw error;
+        }
     }
 };
 exports.PlayersController = PlayersController;

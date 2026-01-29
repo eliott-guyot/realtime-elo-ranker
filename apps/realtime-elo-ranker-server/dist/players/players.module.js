@@ -10,11 +10,13 @@ exports.PlayersModule = void 0;
 const common_1 = require("@nestjs/common");
 const players_service_1 = require("./players.service");
 const players_controller_1 = require("./players.controller");
+const ranking_module_1 = require("../ranking/ranking.module");
 let PlayersModule = class PlayersModule {
 };
 exports.PlayersModule = PlayersModule;
 exports.PlayersModule = PlayersModule = __decorate([
     (0, common_1.Module)({
+        imports: [(0, common_1.forwardRef)(() => ranking_module_1.RankingModule)],
         controllers: [players_controller_1.PlayersController],
         providers: [players_service_1.PlayersService],
         exports: [players_service_1.PlayersService],

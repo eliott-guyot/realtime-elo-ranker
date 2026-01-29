@@ -1,7 +1,8 @@
 // apps/realtime-elo-ranker-server/src/players/players.service.ts
-import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
+import { Injectable, OnModuleInit, Logger, Inject, forwardRef } from '@nestjs/common';
 import * as path from 'path';
 import * as fs from 'fs';
+import { RankingEventsService } from '../ranking/ranking.gateway';
 
 export interface Player {
   id: string;
@@ -12,6 +13,11 @@ export interface Player {
 export class PlayersService implements OnModuleInit {
   private readonly logger = new Logger(PlayersService.name);
   private players = new Map<string, Player>();
+
+  constructor(
+    @Inject(forwardRef(() => RankingEventsService))
+    private readonly rankingEventsService: RankingEventsService,
+  ) {}
 
   async onModuleInit() {
     await this.loadPlayers();
@@ -41,7 +47,6 @@ export class PlayersService implements OnModuleInit {
       this.logger.log(`Loading players from ${filePath}`);
       const fileContent = fs.readFileSync(filePath, 'utf8');
       
-      // Extract array content using regex
       const match = fileContent.match(/const FAKE_PLAYERS = \[\s*([\s\S]*?)\s*\];/);
       if (match && match[1]) {
         const rawList = match[1];
@@ -74,13 +79,19 @@ export class PlayersService implements OnModuleInit {
     return Array.from(this.players.values()).sort((a, b) => b.rank - a.rank);
   }
 
-  addPlayer(id: string): Player {
+
+  addPlayer(id: string, initialRank?: number): Player {
+    if (!id || typeof id !== 'string' || id.trim().length === 0) {
+      throw new Error('INVALID_ID');
+    }
     const existing = this.players.get(id);
     if (existing) {
-      return existing;
+      throw new Error('PLAYER_EXISTS');
     }
-    const newPlayer = { id, rank: 1000 };
+    const rank = initialRank ?? 0;
+    const newPlayer = { id, rank };
     this.players.set(id, newPlayer);
+    this.rankingEventsService.emitRankingUpdate(newPlayer);
     return newPlayer;
   }
 
