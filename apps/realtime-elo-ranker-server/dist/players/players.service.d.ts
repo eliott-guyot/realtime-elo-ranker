@@ -1,18 +1,17 @@
-import { OnModuleInit } from '@nestjs/common';
+import { Repository } from 'typeorm';
+import { PlayerEntity } from './player.entity';
 import { RankingEventsService } from '../ranking/ranking.gateway';
 export interface Player {
     id: string;
     rank: number;
 }
-export declare class PlayersService implements OnModuleInit {
+export declare class PlayersService {
+    private readonly playerRepository;
     private readonly rankingEventsService;
     private readonly logger;
-    private players;
-    constructor(rankingEventsService: RankingEventsService);
-    onModuleInit(): Promise<void>;
-    private loadPlayers;
-    getPlayer(id: string): Player | undefined;
-    getAllPlayers(): Player[];
-    addPlayer(id: string, initialRank?: number): Player;
-    updatePlayer(player: Player): void;
+    constructor(playerRepository: Repository<PlayerEntity>, rankingEventsService: RankingEventsService);
+    getPlayer(id: string): Promise<Player | undefined>;
+    getAllPlayers(): Promise<Player[]>;
+    addPlayer(id: string, initialRank?: number): Promise<Player>;
+    updatePlayer(player: Player): Promise<void>;
 }

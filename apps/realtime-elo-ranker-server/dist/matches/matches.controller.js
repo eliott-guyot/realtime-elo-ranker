@@ -15,13 +15,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MatchesController = void 0;
 const common_1 = require("@nestjs/common");
 const matches_service_1 = require("./matches.service");
+const match_dto_1 = require("./match.dto");
 let MatchesController = class MatchesController {
     matchesService;
     constructor(matchesService) {
         this.matchesService = matchesService;
     }
-    publishMatch(body) {
-        const result = this.matchesService.processMatch(body);
+    async publishMatch(body) {
+        const result = await this.matchesService.processMatch(body);
         if (!result) {
             throw new common_1.HttpException({
                 code: 0,
@@ -36,8 +37,8 @@ __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [matches_service_1.MatchRequest]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [match_dto_1.MatchRequestDto]),
+    __metadata("design:returntype", Promise)
 ], MatchesController.prototype, "publishMatch", null);
 exports.MatchesController = MatchesController = __decorate([
     (0, common_1.Controller)('api/match'),

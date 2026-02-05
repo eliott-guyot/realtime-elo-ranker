@@ -20,9 +20,9 @@ let PlayersController = class PlayersController {
     constructor(playersService) {
         this.playersService = playersService;
     }
-    createPlayer(id) {
+    async createPlayer(id) {
         try {
-            return this.playersService.addPlayer(id);
+            return await this.playersService.addPlayer(id);
         }
         catch (error) {
             if (error.message === 'INVALID_ID') {
@@ -41,7 +41,7 @@ __decorate([
     __param(0, (0, common_1.Body)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], PlayersController.prototype, "createPlayer", null);
 exports.PlayersController = PlayersController = __decorate([
     (0, common_1.Controller)('api/player'),

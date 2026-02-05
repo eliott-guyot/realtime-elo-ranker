@@ -1,14 +1,15 @@
 // apps/realtime-elo-ranker-server/src/matches/matches.controller.ts
 import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
-import { MatchesService, MatchRequest } from './matches.service';
+import { MatchesService } from './matches.service';
+import { MatchRequestDto } from './match.dto';
 
 @Controller('api/match')
 export class MatchesController {
   constructor(private readonly matchesService: MatchesService) {}
 
   @Post()
-  publishMatch(@Body() body: MatchRequest) {
-    const result = this.matchesService.processMatch(body);
+  async publishMatch(@Body() body: MatchRequestDto) {
+    const result = await this.matchesService.processMatch(body);
 
     if (!result) {
       throw new HttpException({

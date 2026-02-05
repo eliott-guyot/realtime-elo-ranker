@@ -2,18 +2,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PlayersService, Player } from '../players/players.service';
 import { RankingEventsService } from '../ranking/ranking.gateway';
-
-export class MatchRequest {
-
-  winner: string;
-  loser: string;
-  draw: boolean;
-}
-
-export interface MatchResponse {
-  winner: Player;
-  loser: Player;
-}
+import { MatchRequestDto, MatchResponseDto } from './match.dto';
 
 @Injectable()
 export class MatchesService {
@@ -25,9 +14,9 @@ export class MatchesService {
       private readonly rankingEventsService: RankingEventsService
     ) {}
 
-  processMatch(matchData: MatchRequest): MatchResponse | null {
-    const winnerPlayer = this.playersService.getPlayer(matchData.winner);
-    const loserPlayer = this.playersService.getPlayer(matchData.loser);
+  async processMatch(matchData: MatchRequestDto): Promise<MatchResponseDto | null> {
+    const winnerPlayer = await this.playersService.getPlayer(matchData.winner);
+    const loserPlayer = await this.playersService.getPlayer(matchData.loser);
 
     if (!winnerPlayer || !loserPlayer) {
       return null;
@@ -53,8 +42,8 @@ export class MatchesService {
     winnerPlayer.rank = newWinnerRank;
     loserPlayer.rank = newLoserRank;
 
-    this.playersService.updatePlayer(winnerPlayer);
-    this.playersService.updatePlayer(loserPlayer);
+    await this.playersService.updatePlayer(winnerPlayer);
+    await this.playersService.updatePlayer(loserPlayer);
 
     this.rankingEventsService.emitRankingUpdate(winnerPlayer);
     this.rankingEventsService.emitRankingUpdate(loserPlayer);

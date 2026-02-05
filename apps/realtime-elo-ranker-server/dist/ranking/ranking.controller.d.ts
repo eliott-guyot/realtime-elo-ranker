@@ -5,6 +5,6 @@ export declare class RankingController {
     private readonly playersService;
     private readonly eventEmitter;
     constructor(playersService: PlayersService, eventEmitter: EventEmitter2);
-    getRanking(): import("../players/players.service").Player[];
+    getRanking(): Promise<import("../players/players.service").Player[]>;
     sse(): Observable<any>;
 }

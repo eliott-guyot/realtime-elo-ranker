@@ -1,103 +1,66 @@
 // apps/realtime-elo-ranker-server/src/players/players.service.ts
-import { Injectable, OnModuleInit, Logger, Inject, forwardRef } from '@nestjs/common';
-import * as path from 'path';
-import * as fs from 'fs';
+
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { PlayerEntity } from './player.entity';
 import { RankingEventsService } from '../ranking/ranking.gateway';
+
 
 export interface Player {
   id: string;
   rank: number;
 }
 
+
 @Injectable()
-export class PlayersService implements OnModuleInit {
+export class PlayersService {
   private readonly logger = new Logger(PlayersService.name);
-  private players = new Map<string, Player>();
 
   constructor(
+    @InjectRepository(PlayerEntity)
+    private readonly playerRepository: Repository<PlayerEntity>,
     @Inject(forwardRef(() => RankingEventsService))
     private readonly rankingEventsService: RankingEventsService,
   ) {}
 
-  async onModuleInit() {
-    await this.loadPlayers();
-  }
 
-  private async loadPlayers() {
-    const possiblePaths = [
-        'apps/realtime-elo-ranker-api-mock/mocks/data/players.data.js',
-        '../realtime-elo-ranker-api-mock/mocks/data/players.data.js'
-    ];
-
-    let filePath = '';
-    for (const p of possiblePaths) {
-        const resolved = path.resolve(process.cwd(), p);
-        if (fs.existsSync(resolved)) {
-            filePath = resolved;
-            break;
-        }
-    }
-
-    try {
-      if (!filePath) {
-          this.logger.error(`Player data file not found. Checked: ${possiblePaths.join(', ')}`);
-          return;
-      }
-      
-      this.logger.log(`Loading players from ${filePath}`);
-      const fileContent = fs.readFileSync(filePath, 'utf8');
-      
-      const match = fileContent.match(/const FAKE_PLAYERS = \[\s*([\s\S]*?)\s*\];/);
-      if (match && match[1]) {
-        const rawList = match[1];
-        const ids = rawList
-          .split(',')
-          .map(s => s.trim())
-          .filter(s => s.length > 0) 
-          .map(s => s.replace(/^["']|["']$/g, '')); 
-
-        ids.forEach(id => {
-          if (id) {
-             this.players.set(id, { id, rank: 0 });
-          }
-        });
-        
-        this.logger.log(`Loaded ${this.players.size} players.`);
-      } else {
-        this.logger.error('Could not parse players data file format.');
-      }
-    } catch (error) {
-      this.logger.error(`Failed to load players: ${error.message}`);
-    }
-  }
-
-  getPlayer(id: string): Player | undefined {
-    return this.players.get(id);
-  }
-
-  getAllPlayers(): Player[] {
-    return Array.from(this.players.values()).sort((a, b) => b.rank - a.rank);
+  async getPlayer(id: string): Promise<Player | undefined> {
+    const entity = await this.playerRepository.findOneBy({ id });
+    if (!entity) return undefined;
+    return { id: entity.id, rank: entity.rank };
   }
 
 
-  addPlayer(id: string, initialRank?: number): Player {
+  async getAllPlayers(): Promise<Player[]> {
+    const entities = await this.playerRepository.find();
+    return entities.map(e => ({ id: e.id, rank: e.rank })).sort((a, b) => b.rank - a.rank);
+  }
+
+
+
+  async addPlayer(id: string, initialRank?: number): Promise<Player> {
     if (!id || typeof id !== 'string' || id.trim().length === 0) {
       throw new Error('INVALID_ID');
     }
-    const existing = this.players.get(id);
+    const existing = await this.playerRepository.findOneBy({ id });
     if (existing) {
       throw new Error('PLAYER_EXISTS');
     }
     const rank = initialRank ?? 0;
+    const entity = this.playerRepository.create({ id, rank });
+    await this.playerRepository.save(entity);
     const newPlayer = { id, rank };
-    this.players.set(id, newPlayer);
     this.rankingEventsService.emitRankingUpdate(newPlayer);
     return newPlayer;
   }
 
-  updatePlayer(player: Player): void {
-    if (this.players.has(player.id)) {
-      this.players.set(player.id, player);
+
+  async updatePlayer(player: Player): Promise<void> {
+    const entity = await this.playerRepository.findOneBy({ id: player.id });
+    if (entity) {
+      entity.rank = player.rank;
+      await this.playerRepository.save(entity);
     }
   }
 }

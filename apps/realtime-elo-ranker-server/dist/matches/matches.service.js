@@ -10,16 +10,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var MatchesService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MatchesService = exports.MatchRequest = void 0;
+exports.MatchesService = void 0;
 const common_1 = require("@nestjs/common");
 const players_service_1 = require("../players/players.service");
 const ranking_gateway_1 = require("../ranking/ranking.gateway");
-class MatchRequest {
-    winner;
-    loser;
-    draw;
-}
-exports.MatchRequest = MatchRequest;
 let MatchesService = MatchesService_1 = class MatchesService {
     playersService;
     rankingEventsService;
@@ -29,9 +23,9 @@ let MatchesService = MatchesService_1 = class MatchesService {
         this.playersService = playersService;
         this.rankingEventsService = rankingEventsService;
     }
-    processMatch(matchData) {
-        const winnerPlayer = this.playersService.getPlayer(matchData.winner);
-        const loserPlayer = this.playersService.getPlayer(matchData.loser);
+    async processMatch(matchData) {
+        const winnerPlayer = await this.playersService.getPlayer(matchData.winner);
+        const loserPlayer = await this.playersService.getPlayer(matchData.loser);
         if (!winnerPlayer || !loserPlayer) {
             return null;
         }
@@ -49,8 +43,8 @@ let MatchesService = MatchesService_1 = class MatchesService {
         const newLoserRank = Math.round(loserRank + this.K_FACTOR * (actualLoserScore - expectedLoser));
         winnerPlayer.rank = newWinnerRank;
         loserPlayer.rank = newLoserRank;
-        this.playersService.updatePlayer(winnerPlayer);
-        this.playersService.updatePlayer(loserPlayer);
+        await this.playersService.updatePlayer(winnerPlayer);
+        await this.playersService.updatePlayer(loserPlayer);
         this.rankingEventsService.emitRankingUpdate(winnerPlayer);
         this.rankingEventsService.emitRankingUpdate(loserPlayer);
         this.logger.log('--- Match Result ---');
